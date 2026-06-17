@@ -170,31 +170,60 @@ namespace AgroWasteNexus.Repositories
             {
                 conn.Open();
 
-                string query = @"
+                using (var transaction = conn.BeginTransaction())
+                {
+                    try
+                    {
+                        string queryUpdate = @"
                     UPDATE produksi SET
                         jumlah_bahan = @jumlahBahan,
                         jumlah_hasil = @jumlahHasil,
                         biaya_produksi = @biayaProduksi,
                         tanggal_produksi = @tanggalProduksi,
-                        status = @status::enum_status_produksi,
                         batch_limbah_id_batch = @idBatch,
                         pengguna_id_pengguna = @idPengguna,
                         produk_id_produk = @idProduk
                     WHERE id_produksi = @idProduksi";
 
-                using (var cmd = new NpgsqlCommand(query, conn))
-                {
-                    cmd.Parameters.AddWithValue("@idProduksi", data.IdProduksi);
-                    cmd.Parameters.AddWithValue("@jumlahBahan", data.JumlahBahan);
-                    cmd.Parameters.AddWithValue("@jumlahHasil", data.JumlahHasil);
-                    cmd.Parameters.AddWithValue("@biayaProduksi", data.BiayaProduksi);
-                    cmd.Parameters.AddWithValue("@tanggalProduksi", data.TanggalProduksi.Date);
-                    cmd.Parameters.AddWithValue("@status", data.Status);
-                    cmd.Parameters.AddWithValue("@idBatch", data.IdBatch);
-                    cmd.Parameters.AddWithValue("@idPengguna", data.IdPengguna);
-                    cmd.Parameters.AddWithValue("@idProduk", data.IdProduk);
+                        using (var cmd = new NpgsqlCommand(queryUpdate, conn))
+                        {
+                            cmd.Transaction = transaction;
 
-                    cmd.ExecuteNonQuery();
+                            cmd.Parameters.AddWithValue("@idProduksi", data.IdProduksi);
+                            cmd.Parameters.AddWithValue("@jumlahBahan", data.JumlahBahan);
+                            cmd.Parameters.AddWithValue("@jumlahHasil", data.JumlahHasil);
+                            cmd.Parameters.AddWithValue("@biayaProduksi", data.BiayaProduksi);
+                            cmd.Parameters.AddWithValue("@tanggalProduksi", data.TanggalProduksi.Date);
+                            cmd.Parameters.AddWithValue("@idBatch", data.IdBatch);
+                            cmd.Parameters.AddWithValue("@idPengguna", data.IdPengguna);
+                            cmd.Parameters.AddWithValue("@idProduk", data.IdProduk);
+
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        string queryStatus = @"
+                    CALL sp_atur_status_produksi(
+                        @idProduksi,
+                        CAST(@status AS enum_status_produksi)
+                    )";
+
+                        using (var cmd = new NpgsqlCommand(queryStatus, conn))
+                        {
+                            cmd.Transaction = transaction;
+
+                            cmd.Parameters.AddWithValue("@idProduksi", data.IdProduksi);
+                            cmd.Parameters.AddWithValue("@status", data.Status);
+
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        transaction.Commit();
+                    }
+                    catch
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
                 }
             }
         }
