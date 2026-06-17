@@ -96,6 +96,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Controller\ControllerResult.cs" />
+    <Compile Include="Controller\ProduksiController.cs" />
     <Compile Include="Database\DBconnection.cs" />
     <Compile Include="Form\BatchLimbah.cs">
       <SubType>Form</SubType>

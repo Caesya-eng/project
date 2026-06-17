@@ -1,4 +1,5 @@
-﻿using AgroWasteNexus.Repositories;
+﻿using AgroWasteNexus.Controllers;
+using AgroWasteNexus.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
@@ -7,7 +8,7 @@ namespace AgroWasteNexus.Forms
 {
     public partial class Produksi : Form
     {
-        private ProduksiRepository repository = new ProduksiRepository();
+        private ProduksiController controller = new ProduksiController();
 
         public Produksi()
         {
@@ -44,7 +45,7 @@ namespace AgroWasteNexus.Forms
             {
                 dgvDaftarProduksi.AutoGenerateColumns = true;
                 dgvDaftarProduksi.DataSource = null;
-                dgvDaftarProduksi.DataSource = repository.GetGrid();
+                dgvDaftarProduksi.DataSource = controller.GetDataProduksi();
 
                 if (dgvDaftarProduksi.Columns.Contains("gambar_produk"))
                 {
@@ -84,7 +85,7 @@ namespace AgroWasteNexus.Forms
             try
             {
                 cmbStatus.DataSource = null;
-                cmbStatus.DataSource = repository.GetStatusProduksi();
+                cmbStatus.DataSource = controller.GetStatusProduksi();
                 cmbStatus.SelectedIndex = -1;
             }
             catch (Exception ex)
@@ -102,7 +103,7 @@ namespace AgroWasteNexus.Forms
         {
             try
             {
-                var gridData = repository.GetGrid();
+                var gridData = controller.GetDataProduksi();
 
                 List<ProdukItem> produkList = new List<ProdukItem>();
                 HashSet<int> idProdukYangSudahAda = new HashSet<int>();
@@ -180,56 +181,20 @@ namespace AgroWasteNexus.Forms
         {
             try
             {
-                if (!int.TryParse(txtIdBatch.Text, out int idBatch))
-                {
-                    MessageBox.Show("ID Batch harus berupa angka.");
+                ControllerResult result = controller.TambahProduksi(
+                    txtIdBatch.Text,
+                    txtJumlahBahan.Text,
+                    txtJumlahHasil.Text,
+                    txtBiayaProduksi.Text,
+                    cmbHasilProduksi.SelectedValue,
+                    cmbStatus.Text,
+                    dtpTanggalProduksi.Value
+                );
+
+                MessageBox.Show(result.Pesan);
+
+                if (!result.Sukses)
                     return;
-                }
-
-                if (!decimal.TryParse(txtJumlahBahan.Text, out decimal jumlahBahan))
-                {
-                    MessageBox.Show("Jumlah bahan harus berupa angka.");
-                    return;
-                }
-
-                if (!decimal.TryParse(txtJumlahHasil.Text, out decimal jumlahHasil))
-                {
-                    MessageBox.Show("Jumlah hasil harus berupa angka.");
-                    return;
-                }
-
-                if (!decimal.TryParse(txtBiayaProduksi.Text, out decimal biayaProduksi))
-                {
-                    MessageBox.Show("Biaya produksi harus berupa angka.");
-                    return;
-                }
-
-                if (cmbHasilProduksi.SelectedIndex < 0 || cmbHasilProduksi.SelectedValue == null)
-                {
-                    MessageBox.Show("Pilih hasil produksi terlebih dahulu.");
-                    return;
-                }
-
-                if (string.IsNullOrWhiteSpace(cmbStatus.Text))
-                {
-                    MessageBox.Show("Pilih status terlebih dahulu.");
-                    return;
-                }
-
-                AgroWasteNexus.Models.Produksi data = new AgroWasteNexus.Models.Produksi();
-
-                data.JumlahBahan = jumlahBahan;
-                data.JumlahHasil = jumlahHasil;
-                data.BiayaProduksi = biayaProduksi;
-                data.TanggalProduksi = dtpTanggalProduksi.Value;
-                data.Status = cmbStatus.Text;
-                data.IdBatch = idBatch;
-                data.IdProduk = Convert.ToInt32(cmbHasilProduksi.SelectedValue);
-                data.IdPengguna = 1;
-
-                repository.Insert(data);
-
-                MessageBox.Show("Data berhasil ditambahkan");
 
                 LoadProdukDariGrid();
                 LoadData();
@@ -250,63 +215,21 @@ namespace AgroWasteNexus.Forms
         {
             try
             {
-                if (!int.TryParse(txtIdProduksi.Text, out int idProduksi))
-                {
-                    MessageBox.Show("Pilih data produksi yang akan diupdate.");
+                ControllerResult result = controller.UpdateProduksi(
+                    txtIdProduksi.Text,
+                    txtIdBatch.Text,
+                    txtJumlahBahan.Text,
+                    txtJumlahHasil.Text,
+                    txtBiayaProduksi.Text,
+                    cmbHasilProduksi.SelectedValue,
+                    cmbStatus.Text,
+                    dtpTanggalProduksi.Value
+                );
+
+                MessageBox.Show(result.Pesan);
+
+                if (!result.Sukses)
                     return;
-                }
-
-                if (!int.TryParse(txtIdBatch.Text, out int idBatch))
-                {
-                    MessageBox.Show("ID Batch harus berupa angka.");
-                    return;
-                }
-
-                if (!decimal.TryParse(txtJumlahBahan.Text, out decimal jumlahBahan))
-                {
-                    MessageBox.Show("Jumlah bahan harus berupa angka.");
-                    return;
-                }
-
-                if (!decimal.TryParse(txtJumlahHasil.Text, out decimal jumlahHasil))
-                {
-                    MessageBox.Show("Jumlah hasil harus berupa angka.");
-                    return;
-                }
-
-                if (!decimal.TryParse(txtBiayaProduksi.Text, out decimal biayaProduksi))
-                {
-                    MessageBox.Show("Biaya produksi harus berupa angka.");
-                    return;
-                }
-
-                if (cmbHasilProduksi.SelectedIndex < 0 || cmbHasilProduksi.SelectedValue == null)
-                {
-                    MessageBox.Show("Pilih hasil produksi terlebih dahulu.");
-                    return;
-                }
-
-                if (string.IsNullOrWhiteSpace(cmbStatus.Text))
-                {
-                    MessageBox.Show("Pilih status terlebih dahulu.");
-                    return;
-                }
-
-                AgroWasteNexus.Models.Produksi data = new AgroWasteNexus.Models.Produksi();
-
-                data.IdProduksi = idProduksi;
-                data.JumlahBahan = jumlahBahan;
-                data.JumlahHasil = jumlahHasil;
-                data.BiayaProduksi = biayaProduksi;
-                data.TanggalProduksi = dtpTanggalProduksi.Value;
-                data.Status = cmbStatus.Text;
-                data.IdBatch = idBatch;
-                data.IdProduk = Convert.ToInt32(cmbHasilProduksi.SelectedValue);
-                data.IdPengguna = 1;
-
-                repository.Update(data);
-
-                MessageBox.Show("Data berhasil diupdate");
 
                 LoadProdukDariGrid();
                 LoadData();
@@ -327,25 +250,22 @@ namespace AgroWasteNexus.Forms
         {
             try
             {
-                if (!int.TryParse(txtIdProduksi.Text, out int idProduksi))
-                {
-                    MessageBox.Show("Pilih data produksi yang akan dihapus.");
-                    return;
-                }
-
-                DialogResult result = MessageBox.Show(
+                DialogResult konfirmasi = MessageBox.Show(
                     "Yakin ingin menghapus data ini?",
                     "Konfirmasi",
                     MessageBoxButtons.YesNo,
                     MessageBoxIcon.Question
                 );
 
-                if (result == DialogResult.No)
+                if (konfirmasi == DialogResult.No)
                     return;
 
-                repository.Delete(idProduksi);
+                ControllerResult result = controller.HapusProduksi(txtIdProduksi.Text);
 
-                MessageBox.Show("Data berhasil dihapus");
+                MessageBox.Show(result.Pesan);
+
+                if (!result.Sukses)
+                    return;
 
                 LoadProdukDariGrid();
                 LoadData();

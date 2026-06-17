@@ -289,6 +289,7 @@
             this.btnKembali.TabIndex = 8;
             this.btnKembali.Text = " ⬅Kembali";
             this.btnKembali.UseVisualStyleBackColor = true;
+            this.btnKembali.Click += new System.EventHandler(this.btnKembali_Click);
             // 
             // Distribusi
             // 

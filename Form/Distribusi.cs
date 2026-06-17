@@ -266,5 +266,10 @@ namespace AgroWasteNexus.Forms
         {
 
         }
+
+        private void btnKembali_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
     }
 }
