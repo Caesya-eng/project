@@ -155,11 +155,13 @@
     </Compile>
     <Compile Include="Models\BaseEntity.cs" />
     <Compile Include="Models\BatchLimbah.cs" />
+    <Compile Include="Models\KendaraanCombo.cs" />
     <Compile Include="Models\Distribusi.cs" />
     <Compile Include="Models\FormLaporan.cs" />
     <Compile Include="Models\JadwalPengangkutanModel.cs" />
     <Compile Include="Models\KontrolKualitas.cs" />
     <Compile Include="Models\Pengguna.cs" />
+    <Compile Include="Models\PetugasCombo.cs" />
     <Compile Include="Models\Produksi.cs" />
     <Compile Include="Models\Produk.cs" />
     <Compile Include="Program.cs" />

@@ -6,8 +6,16 @@ using System.Collections.Generic;
 
 namespace AgroWasteNexus.Repositories
 {
-    public class DistribusiRepository
+  
+    public class DistribusiRepository : BaseRepository<Distribusi>
     {
+       
+        public override List<Distribusi> GetAll()
+        {
+            
+            return new List<Distribusi>();
+        }
+
         public List<DistribusiGrid> GetGrid()
         {
             List<DistribusiGrid> list = new List<DistribusiGrid>();
@@ -84,7 +92,7 @@ namespace AgroWasteNexus.Repositories
             return list;
         }
 
-        public void Insert(Distribusi data)
+        public override void Insert(Distribusi data)
         {
             using (var conn = DbConnectionHelper.GetConnection())
             {
@@ -121,7 +129,7 @@ namespace AgroWasteNexus.Repositories
             }
         }
 
-        public void Update(Distribusi data)
+        public override void Update(Distribusi data)
         {
             using (var conn = DbConnectionHelper.GetConnection())
             {
@@ -150,7 +158,7 @@ namespace AgroWasteNexus.Repositories
             }
         }
 
-        public void Delete(int idDistribusi)
+        public override void Delete(int id)
         {
             using (var conn = DbConnectionHelper.GetConnection())
             {
@@ -160,7 +168,8 @@ namespace AgroWasteNexus.Repositories
 
                 using (var cmd = new NpgsqlCommand(query, conn))
                 {
-                    cmd.Parameters.AddWithValue("@idDistribusi", idDistribusi);
+                  
+                    cmd.Parameters.AddWithValue("@idDistribusi", id);
                     cmd.ExecuteNonQuery();
                 }
             }

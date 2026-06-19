@@ -6,8 +6,15 @@ using System.Collections.Generic;
 
 namespace AgroWasteNexus.Repositories
 {
-    public class BatchLimbahRepository
+    public class BatchLimbahRepository : BaseRepository<BatchLimbah>
     {
+        public override List<BatchLimbah> GetAll()
+        {
+       
+            return new List<BatchLimbah>();
+        }
+
+   
         public List<BatchLimbahGrid> GetGrid()
         {
             List<BatchLimbahGrid> list = new List<BatchLimbahGrid>();
@@ -89,7 +96,7 @@ namespace AgroWasteNexus.Repositories
             return list;
         }
 
-        public void Insert(BatchLimbah data)
+        public override void Insert(BatchLimbah data)
         {
             using (var conn = DbConnectionHelper.GetConnection())
             {
@@ -132,7 +139,7 @@ namespace AgroWasteNexus.Repositories
             }
         }
 
-        public void Update(BatchLimbah data)
+        public override void Update(BatchLimbah data)
         {
             using (var conn = DbConnectionHelper.GetConnection())
             {
@@ -165,7 +172,7 @@ namespace AgroWasteNexus.Repositories
             }
         }
 
-        public void Delete(int idBatch)
+        public override void Delete(int id)
         {
             using (var conn = DbConnectionHelper.GetConnection())
             {
@@ -175,7 +182,7 @@ namespace AgroWasteNexus.Repositories
 
                 using (var cmd = new NpgsqlCommand(query, conn))
                 {
-                    cmd.Parameters.AddWithValue("@idBatch", idBatch);
+                    cmd.Parameters.AddWithValue("@idBatch", id);
                     cmd.ExecuteNonQuery();
                 }
             }

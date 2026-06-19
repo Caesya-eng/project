@@ -6,18 +6,101 @@ using System.Collections.Generic;
 
 namespace AgroWasteNexus.Repositories
 {
-    public class JadwalPengangkutanRepository
+    public class JadwalPengangkutanRepository : BaseRepository<JadwalPengangkutan>
     {
-        public class PetugasCombo
+        public List<PetugasCombo> GetPetugas()
         {
-            public int IdPetugas { get; set; }
-            public string NamaPetugas { get; set; }
+            List<PetugasCombo> list = new List<PetugasCombo>();
+
+            using (var conn = DbConnectionHelper.GetConnection())
+            {
+                conn.Open();
+
+                string query = @"
+            SELECT id_petugas, nama_petugas
+            FROM petugas
+            ORDER BY nama_petugas";
+
+                using (var cmd = new NpgsqlCommand(query, conn))
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        list.Add(new PetugasCombo
+                        {
+                            IdPetugas = Convert.ToInt32(reader["id_petugas"]),
+                            NamaPetugas = reader["nama_petugas"].ToString()
+                        });
+                    }
+                }
+            }
+
+            return list;
         }
 
-        public class KendaraanCombo
+        public List<KendaraanCombo> GetKendaraan()
         {
-            public int IdKendaraan { get; set; }
-            public string NamaKendaraan { get; set; }
+            List<KendaraanCombo> list = new List<KendaraanCombo>();
+
+            using (var conn = DbConnectionHelper.GetConnection())
+            {
+                conn.Open();
+
+                string query = @"
+            SELECT id_kendaraan, nama_kendaraan
+            FROM kendaraan
+            ORDER BY nama_kendaraan";
+
+                using (var cmd = new NpgsqlCommand(query, conn))
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        list.Add(new KendaraanCombo
+                        {
+                            IdKendaraan = Convert.ToInt32(reader["id_kendaraan"]),
+                            NamaKendaraan = reader["nama_kendaraan"].ToString()
+                        });
+                    }
+                }
+            }
+
+            return list;
+        }
+
+        public override List<JadwalPengangkutan> GetAll()
+        {
+            List<JadwalPengangkutan> list = new List<JadwalPengangkutan>();
+
+            using (var conn = DbConnectionHelper.GetConnection())
+            {
+                conn.Open();
+
+                string query = @"
+                    SELECT *
+                    FROM jadwal_pengangkutan
+                    ORDER BY id_jadwal";
+
+                using (var cmd = new NpgsqlCommand(query, conn))
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        JadwalPengangkutan data = new JadwalPengangkutan();
+
+                        data.IdJadwal = Convert.ToInt32(reader["id_jadwal"]);
+                        data.TanggalPengangkutan = Convert.ToDateTime(reader["tanggal_pengangkutan"]);
+                        data.Status = reader["status"].ToString();
+                        data.Catatan = reader["catatan"].ToString();
+                        data.IdPetugas = Convert.ToInt32(reader["petugas_id_petugas"]);
+                        data.IdKendaraan = Convert.ToInt32(reader["kendaraan_id_kendaraan"]);
+
+                        list.Add(data);
+                    }
+                }
+            }
+
+            return list;
         }
 
         public List<JadwalPengangkutanGrid> GetGrid()
@@ -95,132 +178,42 @@ namespace AgroWasteNexus.Repositories
 
             return list;
         }
+
         public void UpdateStatusJadwal(int idJadwal, string statusBaru)
-
         {
-
             using (var conn = DbConnectionHelper.GetConnection())
-
             {
-
                 conn.Open();
 
-
-
                 using (var transaction = conn.BeginTransaction())
-
                 {
-
                     try
-
                     {
-
                         string query = @"
-
-                    CALL sp_atur_status_jadwal(
-
-                        @idJadwal,
-
-                        CAST(@statusBaru AS enum_status_jadwal)
-
-                    )";
+                            CALL sp_atur_status_jadwal(
+                                @idJadwal,
+                                CAST(@statusBaru AS enum_status_jadwal)
+                            )";
 
                         using (var cmd = new NpgsqlCommand(query, conn))
-
                         {
-
                             cmd.Transaction = transaction;
-
                             cmd.Parameters.AddWithValue("@idJadwal", idJadwal);
-
                             cmd.Parameters.AddWithValue("@statusBaru", statusBaru);
-
                             cmd.ExecuteNonQuery();
-
                         }
 
                         transaction.Commit();
-
                     }
-
                     catch
-
                     {
-
                         transaction.Rollback();
-
                         throw;
-
-                    }
-
-                }
-
-            }
-
-        }
-        public List<PetugasCombo> GetPetugas()
-        {
-            List<PetugasCombo> list = new List<PetugasCombo>();
-
-            using (var conn = DbConnectionHelper.GetConnection())
-            {
-                conn.Open();
-
-                string query = @"
-                    SELECT id_petugas, nama_petugas
-                    FROM petugas
-                    ORDER BY nama_petugas";
-
-                using (var cmd = new NpgsqlCommand(query, conn))
-                using (var reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        PetugasCombo data = new PetugasCombo();
-
-                        data.IdPetugas = Convert.ToInt32(reader["id_petugas"]);
-                        data.NamaPetugas = reader["nama_petugas"].ToString();
-
-                        list.Add(data);
                     }
                 }
             }
-
-            return list;
         }
-
-        public List<KendaraanCombo> GetKendaraan()
-        {
-            List<KendaraanCombo> list = new List<KendaraanCombo>();
-
-            using (var conn = DbConnectionHelper.GetConnection())
-            {
-                conn.Open();
-
-                string query = @"
-                    SELECT id_kendaraan, nama_kendaraan
-                    FROM kendaraan
-                    ORDER BY nama_kendaraan";
-
-                using (var cmd = new NpgsqlCommand(query, conn))
-                using (var reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        KendaraanCombo data = new KendaraanCombo();
-
-                        data.IdKendaraan = Convert.ToInt32(reader["id_kendaraan"]);
-                        data.NamaKendaraan = reader["nama_kendaraan"].ToString();
-
-                        list.Add(data);
-                    }
-                }
-            }
-
-            return list;
-        }
-
-        public void Insert(JadwalPengangkutan data)
+        public override void Insert(JadwalPengangkutan data)
         {
             using (var conn = DbConnectionHelper.GetConnection())
             {
@@ -248,7 +241,10 @@ namespace AgroWasteNexus.Repositories
                 {
                     cmd.Parameters.AddWithValue("@tanggal", data.TanggalPengangkutan.Date);
                     cmd.Parameters.AddWithValue("@status", data.Status);
-                    cmd.Parameters.AddWithValue("@catatan", string.IsNullOrWhiteSpace(data.Catatan) ? (object)DBNull.Value : data.Catatan);
+                    cmd.Parameters.AddWithValue("@catatan",
+                        string.IsNullOrWhiteSpace(data.Catatan)
+                        ? (object)DBNull.Value
+                        : data.Catatan);
                     cmd.Parameters.AddWithValue("@idPetugas", data.IdPetugas);
                     cmd.Parameters.AddWithValue("@idKendaraan", data.IdKendaraan);
 
@@ -257,7 +253,7 @@ namespace AgroWasteNexus.Repositories
             }
         }
 
-        public void Update(JadwalPengangkutan data)
+        public override void Update(JadwalPengangkutan data)
         {
             using (var conn = DbConnectionHelper.GetConnection())
             {
@@ -277,7 +273,10 @@ namespace AgroWasteNexus.Repositories
                     cmd.Parameters.AddWithValue("@idJadwal", data.IdJadwal);
                     cmd.Parameters.AddWithValue("@tanggal", data.TanggalPengangkutan.Date);
                     cmd.Parameters.AddWithValue("@status", data.Status);
-                    cmd.Parameters.AddWithValue("@catatan", string.IsNullOrWhiteSpace(data.Catatan) ? (object)DBNull.Value : data.Catatan);
+                    cmd.Parameters.AddWithValue("@catatan",
+                        string.IsNullOrWhiteSpace(data.Catatan)
+                        ? (object)DBNull.Value
+                        : data.Catatan);
                     cmd.Parameters.AddWithValue("@idPetugas", data.IdPetugas);
                     cmd.Parameters.AddWithValue("@idKendaraan", data.IdKendaraan);
 
@@ -286,17 +285,19 @@ namespace AgroWasteNexus.Repositories
             }
         }
 
-        public void Delete(int idJadwal)
+        public override void Delete(int id)
         {
             using (var conn = DbConnectionHelper.GetConnection())
             {
                 conn.Open();
 
-                string query = "DELETE FROM jadwal_pengangkutan WHERE id_jadwal = @idJadwal";
+                string query = @"
+                    DELETE FROM jadwal_pengangkutan
+                    WHERE id_jadwal = @idJadwal";
 
                 using (var cmd = new NpgsqlCommand(query, conn))
                 {
-                    cmd.Parameters.AddWithValue("@idJadwal", idJadwal);
+                    cmd.Parameters.AddWithValue("@idJadwal", id);
                     cmd.ExecuteNonQuery();
                 }
             }

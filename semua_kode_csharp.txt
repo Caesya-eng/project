@@ -88,6 +88,165 @@ namespace AgroWasteNexus
 }
 
 ==============================
+FILE: C:\Users\hp\source\repos\project\Controller\ControllerResult.cs
+==============================
+namespace AgroWasteNexus.Controllers
+{
+    public class ControllerResult
+    {
+        public bool Sukses { get; set; }
+        public string Pesan { get; set; }
+
+        public static ControllerResult Berhasil(string pesan)
+        {
+            return new ControllerResult
+            {
+                Sukses = true,
+                Pesan = pesan
+            };
+        }
+
+        public static ControllerResult Gagal(string pesan)
+        {
+            return new ControllerResult
+            {
+                Sukses = false,
+                Pesan = pesan
+            };
+        }
+    }
+}
+
+==============================
+FILE: C:\Users\hp\source\repos\project\Controller\ProduksiController.cs
+==============================
+using AgroWasteNexus.Models;
+using AgroWasteNexus.Repositories;
+using System;
+using System.Collections.Generic;
+
+namespace AgroWasteNexus.Controllers
+{
+    public class ProduksiController
+    {
+        private ProduksiRepository repository = new ProduksiRepository();
+
+        public List<ProduksiGrid> GetDataProduksi()
+        {
+            return repository.GetGrid();
+        }
+
+        public List<string> GetStatusProduksi()
+        {
+            return repository.GetStatusProduksi();
+        }
+
+        public ControllerResult TambahProduksi(
+            string idBatchText,
+            string jumlahBahanText,
+            string jumlahHasilText,
+            string biayaProduksiText,
+            object selectedValueProduk,
+            string status,
+            DateTime tanggalProduksi)
+        {
+            if (!int.TryParse(idBatchText, out int idBatch))
+                return ControllerResult.Gagal("ID Batch harus berupa angka.");
+
+            if (!decimal.TryParse(jumlahBahanText, out decimal jumlahBahan))
+                return ControllerResult.Gagal("Jumlah bahan harus berupa angka.");
+
+            if (!decimal.TryParse(jumlahHasilText, out decimal jumlahHasil))
+                return ControllerResult.Gagal("Jumlah hasil harus berupa angka.");
+
+            if (!decimal.TryParse(biayaProduksiText, out decimal biayaProduksi))
+                return ControllerResult.Gagal("Biaya produksi harus berupa angka.");
+
+            if (selectedValueProduk == null)
+                return ControllerResult.Gagal("Pilih hasil produksi terlebih dahulu.");
+
+            if (string.IsNullOrWhiteSpace(status))
+                return ControllerResult.Gagal("Pilih status terlebih dahulu.");
+
+            Produksi data = new Produksi
+            {
+                JumlahBahan = jumlahBahan,
+                JumlahHasil = jumlahHasil,
+                BiayaProduksi = biayaProduksi,
+                TanggalProduksi = tanggalProduksi,
+                Status = status,
+                IdBatch = idBatch,
+                IdProduk = Convert.ToInt32(selectedValueProduk),
+                IdPengguna = 1
+            };
+
+            repository.Insert(data);
+
+            return ControllerResult.Berhasil("Data produksi berhasil ditambahkan.");
+        }
+
+        public ControllerResult UpdateProduksi(
+            string idProduksiText,
+            string idBatchText,
+            string jumlahBahanText,
+            string jumlahHasilText,
+            string biayaProduksiText,
+            object selectedValueProduk,
+            string status,
+            DateTime tanggalProduksi)
+        {
+            if (!int.TryParse(idProduksiText, out int idProduksi))
+                return ControllerResult.Gagal("Pilih data produksi yang akan diupdate.");
+
+            if (!int.TryParse(idBatchText, out int idBatch))
+                return ControllerResult.Gagal("ID Batch harus berupa angka.");
+
+            if (!decimal.TryParse(jumlahBahanText, out decimal jumlahBahan))
+                return ControllerResult.Gagal("Jumlah bahan harus berupa angka.");
+
+            if (!decimal.TryParse(jumlahHasilText, out decimal jumlahHasil))
+                return ControllerResult.Gagal("Jumlah hasil harus berupa angka.");
+
+            if (!decimal.TryParse(biayaProduksiText, out decimal biayaProduksi))
+                return ControllerResult.Gagal("Biaya produksi harus berupa angka.");
+
+            if (selectedValueProduk == null)
+                return ControllerResult.Gagal("Pilih hasil produksi terlebih dahulu.");
+
+            if (string.IsNullOrWhiteSpace(status))
+                return ControllerResult.Gagal("Pilih status terlebih dahulu.");
+
+            Produksi data = new Produksi
+            {
+                IdProduksi = idProduksi,
+                JumlahBahan = jumlahBahan,
+                JumlahHasil = jumlahHasil,
+                BiayaProduksi = biayaProduksi,
+                TanggalProduksi = tanggalProduksi,
+                Status = status,
+                IdBatch = idBatch,
+                IdProduk = Convert.ToInt32(selectedValueProduk),
+                IdPengguna = 1
+            };
+
+            repository.Update(data);
+
+            return ControllerResult.Berhasil("Data produksi berhasil diupdate.");
+        }
+
+        public ControllerResult HapusProduksi(string idProduksiText)
+        {
+            if (!int.TryParse(idProduksiText, out int idProduksi))
+                return ControllerResult.Gagal("Pilih data produksi yang akan dihapus.");
+
+            repository.Delete(idProduksi);
+
+            return ControllerResult.Berhasil("Data produksi berhasil dihapus.");
+        }
+    }
+}
+
+==============================
 FILE: C:\Users\hp\source\repos\project\Database\DBconnection.cs
 ==============================
 using Npgsql;
@@ -1556,6 +1715,11 @@ namespace AgroWasteNexus.Forms
         {
 
         }
+
+        private void btnKembali_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
     }
 }
 
@@ -1853,6 +2017,7 @@ namespace AgroWasteNexus.Forms
             this.btnKembali.TabIndex = 8;
             this.btnKembali.Text = " ?Kembali";
             this.btnKembali.UseVisualStyleBackColor = true;
+            this.btnKembali.Click += new System.EventHandler(this.btnKembali_Click);
             // 
             // Distribusi
             // 
@@ -4043,6 +4208,7 @@ namespace AgroWasteNexus.Forms
 ==============================
 FILE: C:\Users\hp\source\repos\project\Form\Produksi.cs
 ==============================
+using AgroWasteNexus.Controllers;
 using AgroWasteNexus.Repositories;
 using System;
 using System.Collections.Generic;
@@ -4052,7 +4218,7 @@ namespace AgroWasteNexus.Forms
 {
     public partial class Produksi : Form
     {
-        private ProduksiRepository repository = new ProduksiRepository();
+        private ProduksiController controller = new ProduksiController();
 
         public Produksi()
         {
@@ -4089,7 +4255,7 @@ namespace AgroWasteNexus.Forms
             {
                 dgvDaftarProduksi.AutoGenerateColumns = true;
                 dgvDaftarProduksi.DataSource = null;
-                dgvDaftarProduksi.DataSource = repository.GetGrid();
+                dgvDaftarProduksi.DataSource = controller.GetDataProduksi();
 
                 if (dgvDaftarProduksi.Columns.Contains("gambar_produk"))
                 {
@@ -4129,7 +4295,7 @@ namespace AgroWasteNexus.Forms
             try
             {
                 cmbStatus.DataSource = null;
-                cmbStatus.DataSource = repository.GetStatusProduksi();
+                cmbStatus.DataSource = controller.GetStatusProduksi();
                 cmbStatus.SelectedIndex = -1;
             }
             catch (Exception ex)
@@ -4147,7 +4313,7 @@ namespace AgroWasteNexus.Forms
         {
             try
             {
-                var gridData = repository.GetGrid();
+                var gridData = controller.GetDataProduksi();
 
                 List<ProdukItem> produkList = new List<ProdukItem>();
                 HashSet<int> idProdukYangSudahAda = new HashSet<int>();
@@ -4225,56 +4391,20 @@ namespace AgroWasteNexus.Forms
         {
             try
             {
-                if (!int.TryParse(txtIdBatch.Text, out int idBatch))
-                {
-                    MessageBox.Show("ID Batch harus berupa angka.");
+                ControllerResult result = controller.TambahProduksi(
+                    txtIdBatch.Text,
+                    txtJumlahBahan.Text,
+                    txtJumlahHasil.Text,
+                    txtBiayaProduksi.Text,
+                    cmbHasilProduksi.SelectedValue,
+                    cmbStatus.Text,
+                    dtpTanggalProduksi.Value
+                );
+
+                MessageBox.Show(result.Pesan);
+
+                if (!result.Sukses)
                     return;
-                }
-
-                if (!decimal.TryParse(txtJumlahBahan.Text, out decimal jumlahBahan))
-                {
-                    MessageBox.Show("Jumlah bahan harus berupa angka.");
-                    return;
-                }
-
-                if (!decimal.TryParse(txtJumlahHasil.Text, out decimal jumlahHasil))
-                {
-                    MessageBox.Show("Jumlah hasil harus berupa angka.");
-                    return;
-                }
-
-                if (!decimal.TryParse(txtBiayaProduksi.Text, out decimal biayaProduksi))
-                {
-                    MessageBox.Show("Biaya produksi harus berupa angka.");
-                    return;
-                }
-
-                if (cmbHasilProduksi.SelectedIndex < 0 || cmbHasilProduksi.SelectedValue == null)
-                {
-                    MessageBox.Show("Pilih hasil produksi terlebih dahulu.");
-                    return;
-                }
-
-                if (string.IsNullOrWhiteSpace(cmbStatus.Text))
-                {
-                    MessageBox.Show("Pilih status terlebih dahulu.");
-                    return;
-                }
-
-                AgroWasteNexus.Models.Produksi data = new AgroWasteNexus.Models.Produksi();
-
-                data.JumlahBahan = jumlahBahan;
-                data.JumlahHasil = jumlahHasil;
-                data.BiayaProduksi = biayaProduksi;
-                data.TanggalProduksi = dtpTanggalProduksi.Value;
-                data.Status = cmbStatus.Text;
-                data.IdBatch = idBatch;
-                data.IdProduk = Convert.ToInt32(cmbHasilProduksi.SelectedValue);
-                data.IdPengguna = 1;
-
-                repository.Insert(data);
-
-                MessageBox.Show("Data berhasil ditambahkan");
 
                 LoadProdukDariGrid();
                 LoadData();
@@ -4295,63 +4425,21 @@ namespace AgroWasteNexus.Forms
         {
             try
             {
-                if (!int.TryParse(txtIdProduksi.Text, out int idProduksi))
-                {
-                    MessageBox.Show("Pilih data produksi yang akan diupdate.");
+                ControllerResult result = controller.UpdateProduksi(
+                    txtIdProduksi.Text,
+                    txtIdBatch.Text,
+                    txtJumlahBahan.Text,
+                    txtJumlahHasil.Text,
+                    txtBiayaProduksi.Text,
+                    cmbHasilProduksi.SelectedValue,
+                    cmbStatus.Text,
+                    dtpTanggalProduksi.Value
+                );
+
+                MessageBox.Show(result.Pesan);
+
+                if (!result.Sukses)
                     return;
-                }
-
-                if (!int.TryParse(txtIdBatch.Text, out int idBatch))
-                {
-                    MessageBox.Show("ID Batch harus berupa angka.");
-                    return;
-                }
-
-                if (!decimal.TryParse(txtJumlahBahan.Text, out decimal jumlahBahan))
-                {
-                    MessageBox.Show("Jumlah bahan harus berupa angka.");
-                    return;
-                }
-
-                if (!decimal.TryParse(txtJumlahHasil.Text, out decimal jumlahHasil))
-                {
-                    MessageBox.Show("Jumlah hasil harus berupa angka.");
-                    return;
-                }
-
-                if (!decimal.TryParse(txtBiayaProduksi.Text, out decimal biayaProduksi))
-                {
-                    MessageBox.Show("Biaya produksi harus berupa angka.");
-                    return;
-                }
-
-                if (cmbHasilProduksi.SelectedIndex < 0 || cmbHasilProduksi.SelectedValue == null)
-                {
-                    MessageBox.Show("Pilih hasil produksi terlebih dahulu.");
-                    return;
-                }
-
-                if (string.IsNullOrWhiteSpace(cmbStatus.Text))
-                {
-                    MessageBox.Show("Pilih status terlebih dahulu.");
-                    return;
-                }
-
-                AgroWasteNexus.Models.Produksi data = new AgroWasteNexus.Models.Produksi();
-
-                data.IdProduksi = idProduksi;
-                data.JumlahBahan = jumlahBahan;
-                data.JumlahHasil = jumlahHasil;
-                data.BiayaProduksi = biayaProduksi;
-                data.TanggalProduksi = dtpTanggalProduksi.Value;
-                data.Status = cmbStatus.Text;
-                data.IdBatch = idBatch;
-                data.IdProduk = Convert.ToInt32(cmbHasilProduksi.SelectedValue);
-                data.IdPengguna = 1;
-
-                repository.Update(data);
-
-                MessageBox.Show("Data berhasil diupdate");
 
                 LoadProdukDariGrid();
                 LoadData();
@@ -4372,25 +4460,22 @@ namespace AgroWasteNexus.Forms
         {
             try
             {
-                if (!int.TryParse(txtIdProduksi.Text, out int idProduksi))
-                {
-                    MessageBox.Show("Pilih data produksi yang akan dihapus.");
-                    return;
-                }
-
-                DialogResult result = MessageBox.Show(
+                DialogResult konfirmasi = MessageBox.Show(
                     "Yakin ingin menghapus data ini?",
                     "Konfirmasi",
                     MessageBoxButtons.YesNo,
                     MessageBoxIcon.Question
                 );
 
-                if (result == DialogResult.No)
+                if (konfirmasi == DialogResult.No)
                     return;
 
-                repository.Delete(idProduksi);
+                ControllerResult result = controller.HapusProduksi(txtIdProduksi.Text);
 
-                MessageBox.Show("Data berhasil dihapus");
+                MessageBox.Show(result.Pesan);
+
+                if (!result.Sukses)
+                    return;
 
                 LoadProdukDariGrid();
                 LoadData();
@@ -4967,6 +5052,18 @@ namespace AgroWasteNexus.Models
 }
 
 ==============================
+FILE: C:\Users\hp\source\repos\project\Models\KendaraanCombo.cs
+==============================
+namespace AgroWasteNexus.Models
+{
+    public class KendaraanCombo
+    {
+        public int IdKendaraan { get; set; }
+        public string NamaKendaraan { get; set; }
+    }
+}
+
+==============================
 FILE: C:\Users\hp\source\repos\project\Models\KontrolKualitas.cs
 ==============================
 using System;
@@ -5042,6 +5139,18 @@ namespace AgroWasteNexus.Models
         {
             return IdPengguna;
         }
+    }
+}
+
+==============================
+FILE: C:\Users\hp\source\repos\project\Models\PetugasCombo.cs
+==============================
+namespace AgroWasteNexus.Models
+{
+    public class PetugasCombo
+    {
+        public int IdPetugas { get; set; }
+        public string NamaPetugas { get; set; }
     }
 }
 
@@ -5285,8 +5394,15 @@ using System.Collections.Generic;
 
 namespace AgroWasteNexus.Repositories
 {
-    public class BatchLimbahRepository
+    public class BatchLimbahRepository : BaseRepository<BatchLimbah>
     {
+        public override List<BatchLimbah> GetAll()
+        {
+       
+            return new List<BatchLimbah>();
+        }
+
+   
         public List<BatchLimbahGrid> GetGrid()
         {
             List<BatchLimbahGrid> list = new List<BatchLimbahGrid>();
@@ -5368,7 +5484,7 @@ namespace AgroWasteNexus.Repositories
             return list;
         }
 
-        public void Insert(BatchLimbah data)
+        public override void Insert(BatchLimbah data)
         {
             using (var conn = DbConnectionHelper.GetConnection())
             {
@@ -5411,7 +5527,7 @@ namespace AgroWasteNexus.Repositories
             }
         }
 
-        public void Update(BatchLimbah data)
+        public override void Update(BatchLimbah data)
         {
             using (var conn = DbConnectionHelper.GetConnection())
             {
@@ -5444,7 +5560,7 @@ namespace AgroWasteNexus.Repositories
             }
         }
 
-        public void Delete(int idBatch)
+        public override void Delete(int id)
         {
             using (var conn = DbConnectionHelper.GetConnection())
             {
@@ -5454,7 +5570,7 @@ namespace AgroWasteNexus.Repositories
 
                 using (var cmd = new NpgsqlCommand(query, conn))
                 {
-                    cmd.Parameters.AddWithValue("@idBatch", idBatch);
+                    cmd.Parameters.AddWithValue("@idBatch", id);
                     cmd.ExecuteNonQuery();
                 }
             }
@@ -5473,8 +5589,16 @@ using System.Collections.Generic;
 
 namespace AgroWasteNexus.Repositories
 {
-    public class DistribusiRepository
+  
+    public class DistribusiRepository : BaseRepository<Distribusi>
     {
+       
+        public override List<Distribusi> GetAll()
+        {
+            
+            return new List<Distribusi>();
+        }
+
         public List<DistribusiGrid> GetGrid()
         {
             List<DistribusiGrid> list = new List<DistribusiGrid>();
@@ -5551,7 +5675,7 @@ namespace AgroWasteNexus.Repositories
             return list;
         }
 
-        public void Insert(Distribusi data)
+        public override void Insert(Distribusi data)
         {
             using (var conn = DbConnectionHelper.GetConnection())
             {
@@ -5588,7 +5712,7 @@ namespace AgroWasteNexus.Repositories
             }
         }
 
-        public void Update(Distribusi data)
+        public override void Update(Distribusi data)
         {
             using (var conn = DbConnectionHelper.GetConnection())
             {
@@ -5617,7 +5741,7 @@ namespace AgroWasteNexus.Repositories
             }
         }
 
-        public void Delete(int idDistribusi)
+        public override void Delete(int id)
         {
             using (var conn = DbConnectionHelper.GetConnection())
             {
@@ -5627,7 +5751,8 @@ namespace AgroWasteNexus.Repositories
 
                 using (var cmd = new NpgsqlCommand(query, conn))
                 {
-                    cmd.Parameters.AddWithValue("@idDistribusi", idDistribusi);
+                  
+                    cmd.Parameters.AddWithValue("@idDistribusi", id);
                     cmd.ExecuteNonQuery();
                 }
             }
@@ -5807,18 +5932,101 @@ using System.Collections.Generic;
 
 namespace AgroWasteNexus.Repositories
 {
-    public class JadwalPengangkutanRepository
+    public class JadwalPengangkutanRepository : BaseRepository<JadwalPengangkutan>
     {
-        public class PetugasCombo
+        public List<PetugasCombo> GetPetugas()
         {
-            public int IdPetugas { get; set; }
-            public string NamaPetugas { get; set; }
+            List<PetugasCombo> list = new List<PetugasCombo>();
+
+            using (var conn = DbConnectionHelper.GetConnection())
+            {
+                conn.Open();
+
+                string query = @"
+            SELECT id_petugas, nama_petugas
+            FROM petugas
+            ORDER BY nama_petugas";
+
+                using (var cmd = new NpgsqlCommand(query, conn))
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        list.Add(new PetugasCombo
+                        {
+                            IdPetugas = Convert.ToInt32(reader["id_petugas"]),
+                            NamaPetugas = reader["nama_petugas"].ToString()
+                        });
+                    }
+                }
+            }
+
+            return list;
         }
 
-        public class KendaraanCombo
+        public List<KendaraanCombo> GetKendaraan()
         {
-            public int IdKendaraan { get; set; }
-            public string NamaKendaraan { get; set; }
+            List<KendaraanCombo> list = new List<KendaraanCombo>();
+
+            using (var conn = DbConnectionHelper.GetConnection())
+            {
+                conn.Open();
+
+                string query = @"
+            SELECT id_kendaraan, nama_kendaraan
+            FROM kendaraan
+            ORDER BY nama_kendaraan";
+
+                using (var cmd = new NpgsqlCommand(query, conn))
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        list.Add(new KendaraanCombo
+                        {
+                            IdKendaraan = Convert.ToInt32(reader["id_kendaraan"]),
+                            NamaKendaraan = reader["nama_kendaraan"].ToString()
+                        });
+                    }
+                }
+            }
+
+            return list;
+        }
+
+        public override List<JadwalPengangkutan> GetAll()
+        {
+            List<JadwalPengangkutan> list = new List<JadwalPengangkutan>();
+
+            using (var conn = DbConnectionHelper.GetConnection())
+            {
+                conn.Open();
+
+                string query = @"
+                    SELECT *
+                    FROM jadwal_pengangkutan
+                    ORDER BY id_jadwal";
+
+                using (var cmd = new NpgsqlCommand(query, conn))
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        JadwalPengangkutan data = new JadwalPengangkutan();
+
+                        data.IdJadwal = Convert.ToInt32(reader["id_jadwal"]);
+                        data.TanggalPengangkutan = Convert.ToDateTime(reader["tanggal_pengangkutan"]);
+                        data.Status = reader["status"].ToString();
+                        data.Catatan = reader["catatan"].ToString();
+                        data.IdPetugas = Convert.ToInt32(reader["petugas_id_petugas"]);
+                        data.IdKendaraan = Convert.ToInt32(reader["kendaraan_id_kendaraan"]);
+
+                        list.Add(data);
+                    }
+                }
+            }
+
+            return list;
         }
 
         public List<JadwalPengangkutanGrid> GetGrid()
@@ -5896,132 +6104,42 @@ namespace AgroWasteNexus.Repositories
 
             return list;
         }
+
         public void UpdateStatusJadwal(int idJadwal, string statusBaru)
-
         {
-
             using (var conn = DbConnectionHelper.GetConnection())
-
             {
-
                 conn.Open();
 
-
-
                 using (var transaction = conn.BeginTransaction())
-
                 {
-
                     try
-
                     {
-
                         string query = @"
-
-                    CALL sp_atur_status_jadwal(
-
-                        @idJadwal,
-
-                        CAST(@statusBaru AS enum_status_jadwal)
-
-                    )";
+                            CALL sp_atur_status_jadwal(
+                                @idJadwal,
+                                CAST(@statusBaru AS enum_status_jadwal)
+                            )";
 
                         using (var cmd = new NpgsqlCommand(query, conn))
-
                         {
-
                             cmd.Transaction = transaction;
-
                             cmd.Parameters.AddWithValue("@idJadwal", idJadwal);
-
                             cmd.Parameters.AddWithValue("@statusBaru", statusBaru);
-
                             cmd.ExecuteNonQuery();
-
                         }
 
                         transaction.Commit();
-
                     }
-
                     catch
-
                     {
-
                         transaction.Rollback();
-
                         throw;
-
-                    }
-
-                }
-
-            }
-
-        }
-        public List<PetugasCombo> GetPetugas()
-        {
-            List<PetugasCombo> list = new List<PetugasCombo>();
-
-            using (var conn = DbConnectionHelper.GetConnection())
-            {
-                conn.Open();
-
-                string query = @"
-                    SELECT id_petugas, nama_petugas
-                    FROM petugas
-                    ORDER BY nama_petugas";
-
-                using (var cmd = new NpgsqlCommand(query, conn))
-                using (var reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        PetugasCombo data = new PetugasCombo();
-
-                        data.IdPetugas = Convert.ToInt32(reader["id_petugas"]);
-                        data.NamaPetugas = reader["nama_petugas"].ToString();
-
-                        list.Add(data);
                     }
                 }
             }
-
-            return list;
         }
-
-        public List<KendaraanCombo> GetKendaraan()
-        {
-            List<KendaraanCombo> list = new List<KendaraanCombo>();
-
-            using (var conn = DbConnectionHelper.GetConnection())
-            {
-                conn.Open();
-
-                string query = @"
-                    SELECT id_kendaraan, nama_kendaraan
-                    FROM kendaraan
-                    ORDER BY nama_kendaraan";
-
-                using (var cmd = new NpgsqlCommand(query, conn))
-                using (var reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        KendaraanCombo data = new KendaraanCombo();
-
-                        data.IdKendaraan = Convert.ToInt32(reader["id_kendaraan"]);
-                        data.NamaKendaraan = reader["nama_kendaraan"].ToString();
-
-                        list.Add(data);
-                    }
-                }
-            }
-
-            return list;
-        }
-
-        public void Insert(JadwalPengangkutan data)
+        public override void Insert(JadwalPengangkutan data)
         {
             using (var conn = DbConnectionHelper.GetConnection())
             {
@@ -6049,7 +6167,10 @@ namespace AgroWasteNexus.Repositories
                 {
                     cmd.Parameters.AddWithValue("@tanggal", data.TanggalPengangkutan.Date);
                     cmd.Parameters.AddWithValue("@status", data.Status);
-                    cmd.Parameters.AddWithValue("@catatan", string.IsNullOrWhiteSpace(data.Catatan) ? (object)DBNull.Value : data.Catatan);
+                    cmd.Parameters.AddWithValue("@catatan",
+                        string.IsNullOrWhiteSpace(data.Catatan)
+                        ? (object)DBNull.Value
+                        : data.Catatan);
                     cmd.Parameters.AddWithValue("@idPetugas", data.IdPetugas);
                     cmd.Parameters.AddWithValue("@idKendaraan", data.IdKendaraan);
 
@@ -6058,7 +6179,7 @@ namespace AgroWasteNexus.Repositories
             }
         }
 
-        public void Update(JadwalPengangkutan data)
+        public override void Update(JadwalPengangkutan data)
         {
             using (var conn = DbConnectionHelper.GetConnection())
             {
@@ -6078,7 +6199,10 @@ namespace AgroWasteNexus.Repositories
                     cmd.Parameters.AddWithValue("@idJadwal", data.IdJadwal);
                     cmd.Parameters.AddWithValue("@tanggal", data.TanggalPengangkutan.Date);
                     cmd.Parameters.AddWithValue("@status", data.Status);
-                    cmd.Parameters.AddWithValue("@catatan", string.IsNullOrWhiteSpace(data.Catatan) ? (object)DBNull.Value : data.Catatan);
+                    cmd.Parameters.AddWithValue("@catatan",
+                        string.IsNullOrWhiteSpace(data.Catatan)
+                        ? (object)DBNull.Value
+                        : data.Catatan);
                     cmd.Parameters.AddWithValue("@idPetugas", data.IdPetugas);
                     cmd.Parameters.AddWithValue("@idKendaraan", data.IdKendaraan);
 
@@ -6087,17 +6211,19 @@ namespace AgroWasteNexus.Repositories
             }
         }
 
-        public void Delete(int idJadwal)
+        public override void Delete(int id)
         {
             using (var conn = DbConnectionHelper.GetConnection())
             {
                 conn.Open();
 
-                string query = "DELETE FROM jadwal_pengangkutan WHERE id_jadwal = @idJadwal";
+                string query = @"
+                    DELETE FROM jadwal_pengangkutan
+                    WHERE id_jadwal = @idJadwal";
 
                 using (var cmd = new NpgsqlCommand(query, conn))
                 {
-                    cmd.Parameters.AddWithValue("@idJadwal", idJadwal);
+                    cmd.Parameters.AddWithValue("@idJadwal", id);
                     cmd.ExecuteNonQuery();
                 }
             }
@@ -6462,8 +6588,45 @@ using System.Windows.Forms;
 
 namespace AgroWasteNexus.Repositories
 {
-    public class ProduksiRepository
+    public class ProduksiRepository : BaseRepository<Produksi>
     {
+        public override List<Produksi> GetAll()
+        {
+            List<Produksi> list = new List<Produksi>();
+
+            using (var conn = DbConnectionHelper.GetConnection())
+            {
+                conn.Open();
+
+                string query = @"
+            SELECT *
+            FROM produksi
+            ORDER BY id_produksi";
+
+                using (var cmd = new NpgsqlCommand(query, conn))
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        Produksi data = new Produksi();
+
+                        data.IdProduksi = Convert.ToInt32(reader["id_produksi"]);
+                        data.JumlahBahan = Convert.ToDecimal(reader["jumlah_bahan"]);
+                        data.JumlahHasil = Convert.ToDecimal(reader["jumlah_hasil"]);
+                        data.BiayaProduksi = Convert.ToDecimal(reader["biaya_produksi"]);
+                        data.TanggalProduksi = Convert.ToDateTime(reader["tanggal_produksi"]);
+                        data.Status = reader["status"].ToString();
+                        data.IdBatch = Convert.ToInt32(reader["batch_limbah_id_batch"]);
+                        data.IdPengguna = Convert.ToInt32(reader["pengguna_id_pengguna"]);
+                        data.IdProduk = Convert.ToInt32(reader["produk_id_produk"]);
+
+                        list.Add(data);
+                    }
+                }
+            }
+
+            return list;
+        }
         public List<ProduksiGrid> GetGrid()
         {
             List<ProduksiGrid> list = new List<ProduksiGrid>();
@@ -6473,21 +6636,21 @@ namespace AgroWasteNexus.Repositories
                 conn.Open();
 
                 string query = @"
-                    SELECT 
-                        id_produksi,
-                        id_batch_asal,
-                        id_produk,
-                        id_pengguna,
-                        asal_pabrik_limbah,
-                        tanggal_produksi,
-                        bahan_baku_kg,
-                        target_hasil_kg,
-                        biaya_produksi,
-                        status_produksi,
-                        nama_produk,
-                        gambar_produk
-                    FROM v_grid_produksi
-                    ORDER BY id_produksi";
+            SELECT
+                id_produksi,
+                id_batch_asal,
+                id_produk,
+                id_pengguna,
+                asal_pabrik_limbah,
+                tanggal_produksi,
+                bahan_baku_kg,
+                target_hasil_kg,
+                biaya_produksi,
+                status_produksi,
+                nama_produk,
+                gambar_produk
+            FROM v_grid_produksi
+            ORDER BY id_produksi";
 
                 using (var cmd = new NpgsqlCommand(query, conn))
                 using (var reader = cmd.ExecuteReader())
@@ -6521,7 +6684,6 @@ namespace AgroWasteNexus.Repositories
 
             return list;
         }
-
         private Image LoadFotoProduk(string namaFile)
         {
             if (string.IsNullOrWhiteSpace(namaFile))
@@ -6571,35 +6733,35 @@ namespace AgroWasteNexus.Repositories
             return list;
         }
 
-        public void Insert(Produksi data)
+        public override void Insert(Produksi data)
         {
             using (var conn = DbConnectionHelper.GetConnection())
             {
                 conn.Open();
 
                 string query = @"
-                    INSERT INTO produksi
-                    (
-                        jumlah_bahan,
-                        jumlah_hasil,
-                        biaya_produksi,
-                        tanggal_produksi,
-                        status,
-                        batch_limbah_id_batch,
-                        pengguna_id_pengguna,
-                        produk_id_produk
-                    )
-                    VALUES
-                    (
-                        @jumlahBahan,
-                        @jumlahHasil,
-                        @biayaProduksi,
-                        @tanggalProduksi,
-                        @status::enum_status_produksi,
-                        @idBatch,
-                        @idPengguna,
-                        @idProduk
-                    )";
+            INSERT INTO produksi
+            (
+                jumlah_bahan,
+                jumlah_hasil,
+                biaya_produksi,
+                tanggal_produksi,
+                status,
+                batch_limbah_id_batch,
+                pengguna_id_pengguna,
+                produk_id_produk
+            )
+            VALUES
+            (
+                @jumlahBahan,
+                @jumlahHasil,
+                @biayaProduksi,
+                @tanggalProduksi,
+                @status::enum_status_produksi,
+                @idBatch,
+                @idPengguna,
+                @idProduk
+            )";
 
                 using (var cmd = new NpgsqlCommand(query, conn))
                 {
@@ -6617,42 +6779,71 @@ namespace AgroWasteNexus.Repositories
             }
         }
 
-        public void Update(Produksi data)
+        public override void Update(Produksi data)
         {
             using (var conn = DbConnectionHelper.GetConnection())
             {
                 conn.Open();
 
-                string query = @"
+                using (var transaction = conn.BeginTransaction())
+                {
+                    try
+                    {
+                        string queryUpdate = @"
                     UPDATE produksi SET
                         jumlah_bahan = @jumlahBahan,
                         jumlah_hasil = @jumlahHasil,
                         biaya_produksi = @biayaProduksi,
                         tanggal_produksi = @tanggalProduksi,
-                        status = @status::enum_status_produksi,
                         batch_limbah_id_batch = @idBatch,
                         pengguna_id_pengguna = @idPengguna,
                         produk_id_produk = @idProduk
                     WHERE id_produksi = @idProduksi";
 
-                using (var cmd = new NpgsqlCommand(query, conn))
-                {
-                    cmd.Parameters.AddWithValue("@idProduksi", data.IdProduksi);
-                    cmd.Parameters.AddWithValue("@jumlahBahan", data.JumlahBahan);
-                    cmd.Parameters.AddWithValue("@jumlahHasil", data.JumlahHasil);
-                    cmd.Parameters.AddWithValue("@biayaProduksi", data.BiayaProduksi);
-                    cmd.Parameters.AddWithValue("@tanggalProduksi", data.TanggalProduksi.Date);
-                    cmd.Parameters.AddWithValue("@status", data.Status);
-                    cmd.Parameters.AddWithValue("@idBatch", data.IdBatch);
-                    cmd.Parameters.AddWithValue("@idPengguna", data.IdPengguna);
-                    cmd.Parameters.AddWithValue("@idProduk", data.IdProduk);
+                        using (var cmd = new NpgsqlCommand(queryUpdate, conn))
+                        {
+                            cmd.Transaction = transaction;
 
-                    cmd.ExecuteNonQuery();
+                            cmd.Parameters.AddWithValue("@idProduksi", data.IdProduksi);
+                            cmd.Parameters.AddWithValue("@jumlahBahan", data.JumlahBahan);
+                            cmd.Parameters.AddWithValue("@jumlahHasil", data.JumlahHasil);
+                            cmd.Parameters.AddWithValue("@biayaProduksi", data.BiayaProduksi);
+                            cmd.Parameters.AddWithValue("@tanggalProduksi", data.TanggalProduksi.Date);
+                            cmd.Parameters.AddWithValue("@idBatch", data.IdBatch);
+                            cmd.Parameters.AddWithValue("@idPengguna", data.IdPengguna);
+                            cmd.Parameters.AddWithValue("@idProduk", data.IdProduk);
+
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        string queryStatus = @"
+                    CALL sp_atur_status_produksi(
+                        @idProduksi,
+                        CAST(@status AS enum_status_produksi)
+                    )";
+
+                        using (var cmd = new NpgsqlCommand(queryStatus, conn))
+                        {
+                            cmd.Transaction = transaction;
+
+                            cmd.Parameters.AddWithValue("@idProduksi", data.IdProduksi);
+                            cmd.Parameters.AddWithValue("@status", data.Status);
+
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        transaction.Commit();
+                    }
+                    catch
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
                 }
             }
         }
 
-        public void Delete(int idProduksi)
+        public override void Delete(int id)
         {
             using (var conn = DbConnectionHelper.GetConnection())
             {
@@ -6662,7 +6853,7 @@ namespace AgroWasteNexus.Repositories
 
                 using (var cmd = new NpgsqlCommand(query, conn))
                 {
-                    cmd.Parameters.AddWithValue("@idProduksi", idProduksi);
+                    cmd.Parameters.AddWithValue("@idProduksi", id);
                     cmd.ExecuteNonQuery();
                 }
             }

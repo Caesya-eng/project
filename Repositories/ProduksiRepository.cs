@@ -9,8 +9,45 @@ using System.Windows.Forms;
 
 namespace AgroWasteNexus.Repositories
 {
-    public class ProduksiRepository
+    public class ProduksiRepository : BaseRepository<Produksi>
     {
+        public override List<Produksi> GetAll()
+        {
+            List<Produksi> list = new List<Produksi>();
+
+            using (var conn = DbConnectionHelper.GetConnection())
+            {
+                conn.Open();
+
+                string query = @"
+            SELECT *
+            FROM produksi
+            ORDER BY id_produksi";
+
+                using (var cmd = new NpgsqlCommand(query, conn))
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        Produksi data = new Produksi();
+
+                        data.IdProduksi = Convert.ToInt32(reader["id_produksi"]);
+                        data.JumlahBahan = Convert.ToDecimal(reader["jumlah_bahan"]);
+                        data.JumlahHasil = Convert.ToDecimal(reader["jumlah_hasil"]);
+                        data.BiayaProduksi = Convert.ToDecimal(reader["biaya_produksi"]);
+                        data.TanggalProduksi = Convert.ToDateTime(reader["tanggal_produksi"]);
+                        data.Status = reader["status"].ToString();
+                        data.IdBatch = Convert.ToInt32(reader["batch_limbah_id_batch"]);
+                        data.IdPengguna = Convert.ToInt32(reader["pengguna_id_pengguna"]);
+                        data.IdProduk = Convert.ToInt32(reader["produk_id_produk"]);
+
+                        list.Add(data);
+                    }
+                }
+            }
+
+            return list;
+        }
         public List<ProduksiGrid> GetGrid()
         {
             List<ProduksiGrid> list = new List<ProduksiGrid>();
@@ -20,21 +57,21 @@ namespace AgroWasteNexus.Repositories
                 conn.Open();
 
                 string query = @"
-                    SELECT 
-                        id_produksi,
-                        id_batch_asal,
-                        id_produk,
-                        id_pengguna,
-                        asal_pabrik_limbah,
-                        tanggal_produksi,
-                        bahan_baku_kg,
-                        target_hasil_kg,
-                        biaya_produksi,
-                        status_produksi,
-                        nama_produk,
-                        gambar_produk
-                    FROM v_grid_produksi
-                    ORDER BY id_produksi";
+            SELECT
+                id_produksi,
+                id_batch_asal,
+                id_produk,
+                id_pengguna,
+                asal_pabrik_limbah,
+                tanggal_produksi,
+                bahan_baku_kg,
+                target_hasil_kg,
+                biaya_produksi,
+                status_produksi,
+                nama_produk,
+                gambar_produk
+            FROM v_grid_produksi
+            ORDER BY id_produksi";
 
                 using (var cmd = new NpgsqlCommand(query, conn))
                 using (var reader = cmd.ExecuteReader())
@@ -68,7 +105,6 @@ namespace AgroWasteNexus.Repositories
 
             return list;
         }
-
         private Image LoadFotoProduk(string namaFile)
         {
             if (string.IsNullOrWhiteSpace(namaFile))
@@ -118,35 +154,35 @@ namespace AgroWasteNexus.Repositories
             return list;
         }
 
-        public void Insert(Produksi data)
+        public override void Insert(Produksi data)
         {
             using (var conn = DbConnectionHelper.GetConnection())
             {
                 conn.Open();
 
                 string query = @"
-                    INSERT INTO produksi
-                    (
-                        jumlah_bahan,
-                        jumlah_hasil,
-                        biaya_produksi,
-                        tanggal_produksi,
-                        status,
-                        batch_limbah_id_batch,
-                        pengguna_id_pengguna,
-                        produk_id_produk
-                    )
-                    VALUES
-                    (
-                        @jumlahBahan,
-                        @jumlahHasil,
-                        @biayaProduksi,
-                        @tanggalProduksi,
-                        @status::enum_status_produksi,
-                        @idBatch,
-                        @idPengguna,
-                        @idProduk
-                    )";
+            INSERT INTO produksi
+            (
+                jumlah_bahan,
+                jumlah_hasil,
+                biaya_produksi,
+                tanggal_produksi,
+                status,
+                batch_limbah_id_batch,
+                pengguna_id_pengguna,
+                produk_id_produk
+            )
+            VALUES
+            (
+                @jumlahBahan,
+                @jumlahHasil,
+                @biayaProduksi,
+                @tanggalProduksi,
+                @status::enum_status_produksi,
+                @idBatch,
+                @idPengguna,
+                @idProduk
+            )";
 
                 using (var cmd = new NpgsqlCommand(query, conn))
                 {
@@ -164,7 +200,7 @@ namespace AgroWasteNexus.Repositories
             }
         }
 
-        public void Update(Produksi data)
+        public override void Update(Produksi data)
         {
             using (var conn = DbConnectionHelper.GetConnection())
             {
@@ -228,7 +264,7 @@ namespace AgroWasteNexus.Repositories
             }
         }
 
-        public void Delete(int idProduksi)
+        public override void Delete(int id)
         {
             using (var conn = DbConnectionHelper.GetConnection())
             {
@@ -238,7 +274,7 @@ namespace AgroWasteNexus.Repositories
 
                 using (var cmd = new NpgsqlCommand(query, conn))
                 {
-                    cmd.Parameters.AddWithValue("@idProduksi", idProduksi);
+                    cmd.Parameters.AddWithValue("@idProduksi", id);
                     cmd.ExecuteNonQuery();
                 }
             }
